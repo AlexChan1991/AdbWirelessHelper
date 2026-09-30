@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 应用名 -->
+    <string name="app_name">Adb Wireless</string>
+
+    <!-- 前台服务通知渠道 -->
+    <string name="notification_channel_name">无线调试连接</string>
+    <string name="notification_channel_desc">显示当前 ADB 无线连接与投屏状态</string>
+
+    <!-- 通知文案（title 前缀由代码拼接设备数量） -->
+    <string name="notification_title_prefix">已连接</string>
+    <string name="notification_text_idle">正在保持 ADB 无线连接</string>
+    <string name="notification_text_mirroring">正在投屏</string>
+
+    <!-- 通知与服务的动作按钮文案 -->
+    <string name="service_stop_action">断开全部</string>
+
+    <!-- 通用文案（各屏幕自己的文案写在对应 Kotlin 文件的 private const val 中） -->
+    <string name="common_unknown">未知</string>
+    <string name="common_cancel">取消</string>
+    <string name="common_confirm">确定</string>
+</resources>

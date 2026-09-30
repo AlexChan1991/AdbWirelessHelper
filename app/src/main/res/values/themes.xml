@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      Activity 主题。使用平台 Material 主题作为 parent（本项目为纯 Compose UI，
+      不需要 AppCompat）；Compose 内部由 AdbWifiTheme 提供 Material3 配色。
+
+      ⚠️ 不要在这里写死 statusBarColor / navigationBarColor / windowLightStatusBar。
+
+      1. 本工程 targetSdk = 35，Android 15（API 35）起对 targetSdk ≥ 35 的应用
+         **强制 edge-to-edge**：statusBarColor / navigationBarColor 已不再生效，
+         系统栏背后画的就是应用内容（Scaffold 背景 = colorScheme.surface，
+         深色主题下是 #FF111318，见 Color.kt 的 SurfaceDark）。
+      2. 而 windowLightStatusBar = true 的语义是「背景浅 → 用深色图标」。
+         在深色主题下它依然强制深色图标，深色图标压在 #FF111318 上几乎看不见。
+      3. 本 App 设置页提供「跟随系统 / 强制浅色 / 强制深色」三档，主题是**运行时**
+         决定的，而 res/ 下只有 values/ 没有 values-night/，XML 无法表达这个分支。
+
+      因此系统栏改为**运行时**设置，见 ui/theme/Theme.kt 的 SystemBarsAppearance()：
+      - 图标前景色：按实际生效的 colorScheme 设 WindowInsetsControllerCompat
+        的 isAppearanceLightStatusBars / isAppearanceLightNavigationBars；
+      - 系统栏底色：按实际生效的 colorScheme.surface 设 window.statusBarColor /
+        navigationBarColor（≥15 被忽略，≤14 生效 —— 不设会落到 parent 的默认深条，
+        配上浅色主题的深色图标就是「深色压深色」）。
+
+      简单说：这两个颜色在 XML 里**怎么写都是错的**，只能在运行时按主题给。
+    -->
+    <style name="Theme.AdbWirelessHelper" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:colorAccent">#1565C0</item>
+    </style>
+
+</resources>

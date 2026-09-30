@@ -1,0 +1,18 @@
+# 行尾与二进制规则（优先级高于 core.autocrlf）
+* text=auto
+
+# shell 脚本必须保持 LF，否则 bash 报 "\r: command not found"
+gradlew text eol=lf
+*.sh text eol=lf
+
+# Windows 批处理必须保持 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制资产，禁止任何转换
+*.so   binary
+*.jar  binary
+*.png  binary
+*.webp binary
+*.jpg  binary
+*.keystore binary

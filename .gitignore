@@ -1,0 +1,94 @@
+# ============================================================================
+# AdbWirelessHelper — Git 忽略规则
+#
+# 原则：只提交「clone 下来能直接 assembleDebug」所必需的源码与资产；
+#       不提交本机构建缓存、IDE 配置、密钥、绝对路径。
+# ============================================================================
+
+## ---------------------------------------------------------------- 1. Gradle
+.gradle/
+build/
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+intermediates/
+outputs/
+kotlin-js-store/
+# Android Studio 导入工程时生成的本机配置文件
+gradle-app.setting
+
+## ---------------------------------------------------- 2. 本机配置（绝对路径）
+# 内含 sdk.dir=<本机 Android SDK 路径>，换机器必失效
+local.properties
+
+## ------------------------------------- 3. 打包产物（由 build/ 产出，不入库）
+*.apk
+*.aab
+*.ap_
+*.dex
+
+## --------------------------------------------- 4. IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+
+## ---------------------------------------------------------- 5. 签名与密钥
+*.jks
+*.keystore
+*.p12
+*.pem
+*.pfx
+# 本机环境变量（万一以后放了 adb 端口 / token，绝不能入库）
+.env
+*.env
+
+## ------------------------------------------------------ 6. 第三方服务配置
+google-services.json
+
+## ------------------------------------------- 7. 日志 / 分析快照 / 系统垃圾
+*.log
+*.hprof
+*.trace
+.DS_Store
+Thumbs.db
+desktop.ini
+# lint 产物（AS 跑 lint 后落盘，属于分析快照）
+lint-results.txt
+lint-baseline.xml
+lint-report.html
+# 冲突 / 补丁 / 编辑器残留
+*.orig
+*.rej
+*.patch
+*.swp
+*~
+
+## ------------------------------------------------------------ 8. 本项目特有
+# ⚠️ **`gradle.properties` 不能整体忽略**：里面有 `android.useAndroidX=true`
+#    等必需开关。但其中 `org.gradle.java.installations.paths` 硬编码了本机 JDK
+#    绝对路径（换机器必失效）——**换机器时手工删这一行**，不要用 .gitignore 解决。
+#    想彻底解决请改用 `org.gradle.java.installations.auto-download` 或 CI 注入。
+# 为绕开「C 盘空间不足」与「Android Studio 守护进程独占 journal-1.lock」
+# 而自建的 D 盘构建缓存（约 386 MB），纯本机环境，禁止入库
+.gradle_local/
+# 排障过程中临时落盘的构建/终止日志
+build_log.txt
+stop_log.txt
+# AI 助手工作区数据（本机约 802 MB 缓存 + 项目记忆），不入库
+.workbuddy/
+
+# ============================================================================
+# !! 以下二进制是运行时/构建必需资产，必须入库，切勿被上面的规则误伤 !!
+# ============================================================================
+# 内置 adb 可执行文件：本项目在一台安卓设备上自身充当 ADB 客户端，
+# 少了这两个 .so 就完全无法连接被控端
+!app/src/main/jniLibs/**/*.so
+# scrcpy 服务端 jar，运行时 push 到被控端用 app_process 启动
+!app/src/main/assets/*.jar
+# wrapper jar：保证别人 clone 后 ./gradlew 拉到版本一致的 Gradle
+!gradle/wrapper/gradle-wrapper.jar

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  启动图标：纯 path 绘制的「路由器 / Wi-Fi 波纹」图形（无位图资源，无依赖）。
+  背景为圆角方形品牌蓝，前景为两道 Wi-Fi 波纹 + 圆点。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- 圆角方形背景 -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M4,0 L44,0 A4,4 0 0 1 48,4 L48,44 A4,4 0 0 1 44,48 L4,48 A4,4 0 0 1 0,44 L0,4 A4,4 0 0 1 4,0 Z" />
+
+    <!-- 外圈波纹：外径 22 / 内径 17，圆心 (24,38) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M8.44,22.44 A22,22 0 0 1 39.56,22.44 L36.02,25.98 A17,17 0 0 0 11.98,25.98 Z" />
+
+    <!-- 内圈波纹：外径 16 / 内径 11，圆心 (24,38) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12.69,26.69 A16,16 0 0 1 35.31,26.69 L31.78,30.22 A11,11 0 0 0 16.22,30.22 Z" />
+
+    <!-- 圆心 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,34.5 A3.5,3.5 0 1 1 24,41.5 A3.5,3.5 0 1 1 24,34.5 Z" />
+
+</vector>
