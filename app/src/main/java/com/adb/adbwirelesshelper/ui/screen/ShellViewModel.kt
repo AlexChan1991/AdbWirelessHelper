@@ -61,8 +61,23 @@ class ShellViewModel(
     private val _timeoutMs: MutableStateFlow<Long> = MutableStateFlow(DEFAULT_TIMEOUT_MS)
     val timeoutMs: StateFlow<Long> = _timeoutMs.asStateFlow()
 
-    /** ≥ 12 条常用命令，横向 Chip 直接预填。 */
+    /**
+     * 常用命令，横向 Chip 直接预填（前三条是「模拟操作」类，改动设备状态，放在最前）。
+     *
+     * ⚠️ 这里**一律不写 `adb shell` 前缀**：本页的语义是「命令在被控端 shell 里执行」，
+     * 前缀会被 [ShellExecutor.normalizeShellCommand] 自动剥掉，写了只会多一行提示。
+     *
+     * 「输入文本」的 `xxxx` 是占位符，点完 chip 必须自己改 —— 空格要用引号或 `%s` 转义，
+     * 且 `input text` 只吃 ASCII，中文打不进去（这是 Android `input` 命令本身的限制，
+     * 不是本 App 的限制）。另外它注入到**被控端当前获得焦点的输入框**，
+     * 所以要先在 B 上把光标点到目标位置。
+     */
     val presets: List<Preset> = listOf(
+        // ---- 模拟操作（注入输入事件，直接改设备状态） ----
+        Preset("点亮屏幕", "input keyevent 26"),
+        Preset("上滑", "input swipe 300 1000 300 300"),
+        Preset("输入文本", "input text xxxx"),
+        // ---- 只读查询 ----
         Preset("设备信息", "getprop ro.product.manufacturer; getprop ro.product.model; getprop ro.build.version.release"),
         Preset("序列号", "getprop ro.serialno"),
         Preset("Android 版本", "getprop ro.build.version.release; getprop ro.build.version.sdk"),
@@ -102,19 +117,28 @@ class ShellViewModel(
         Logx.i(TAG, "ShellViewModel 绑定：$serial")
     }
 
-    /** 执行一条命令。命中黑名单时先弹二次确认。 */
-    fun run(cmd: String) {
+    /**
+     * 执行一条命令。命中黑名单时先弹二次确认。
+     *
+     * @return 命令是否已**受理**（真的下发执行）。
+     *
+     * ⚠️ 调用方（[ShellScreen]）只在返回 true 时才清空输入框。返回 false 的四种情形
+     * —— 空命令 / 尚未绑定设备 / 已有命令在跑 / 正在等二次确认 —— 都必须把命令**留在框里**：
+     * 这几种都是「点了没跑起来」，此时把用户辛苦敲的内容抹掉等于惩罚一次误操作，
+     * 而且二次确认那条路径用户还可能点「取消」回来接着改。
+     */
+    fun run(cmd: String): Boolean {
         val command: String = cmd.trim()
-        if (command.isEmpty()) return
+        if (command.isEmpty()) return false
 
         val serial: String = boundSerial
         if (serial.isBlank()) {
             append(ShellLine(TEXT_NO_DEVICE, isError = true))
-            return
+            return false
         }
         if (job?.isActive == true) {
             append(ShellLine(TEXT_BUSY, isError = true))
-            return
+            return false
         }
         if (ShellExecutor.isDangerous(command)) {
             val reason: String = ShellExecutor.dangerReason(command) ?: TEXT_DANGER_DEFAULT_REASON
@@ -123,16 +147,16 @@ class ShellViewModel(
             }
             append(ShellLine(TEXT_DANGER_BLOCKED + reason, isError = true))
             _pendingDanger.value = command
-            return
+            return false
         }
-        execute(command)
+        return execute(command)
     }
 
-    /** 用户在二次确认框点了「确认执行」。 */
-    fun confirmDanger() {
-        val command: String = _pendingDanger.value ?: return
+    /** 用户在二次确认框点了「确认执行」。返回是否已受理（同 [run] 的约定）。 */
+    fun confirmDanger(): Boolean {
+        val command: String = _pendingDanger.value ?: return false
         _pendingDanger.value = null
-        execute(command, confirmed = true)
+        return execute(command, confirmed = true)
     }
 
     /** 用户在二次确认框点了「取消」。 */
@@ -180,10 +204,11 @@ class ShellViewModel(
      *
      * @param confirmed 是否已完成高危命令二次确认。来自 [confirmDanger] 时必须传 true，
      *                  否则 [ShellExecutor.run] 会再次把命令拦截掉（弹了确认框却永远执行不了）。
+     * @return 是否真的下发。只有 `serial` 为空时会 false。
      */
-    private fun execute(command: String, confirmed: Boolean = false) {
+    private fun execute(command: String, confirmed: Boolean = false): Boolean {
         val serial: String = boundSerial
-        if (serial.isBlank()) return
+        if (serial.isBlank()) return false
 
         pushHistory(command)
         append(ShellLine("$ $command", isCommand = true))
@@ -243,6 +268,7 @@ class ShellViewModel(
                 job = null
             }
         }
+        return true
     }
 
     /**

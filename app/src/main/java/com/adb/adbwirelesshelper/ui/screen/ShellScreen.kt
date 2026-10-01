@@ -86,7 +86,7 @@ private const val TEXT_MENU_TIMEOUT30: String = "超时 30 秒"
 private const val TEXT_MENU_TIMEOUT_NO: String = "超时无限制"
 private const val TEXT_COPIED: String = "已复制全部输出"
 private const val TEXT_PRESET_HINT: String = "预设命令"
-private const val TEXT_PRESET_NOTE: String = "点击填入输入框，高危命令会先弹确认"
+private const val TEXT_PRESET_NOTE: String = "点击填入输入框；最前三条会改动设备状态，高危命令会先弹确认"
 private const val TEXT_DANGER_TITLE: String = "高危命令确认"
 private const val TEXT_DANGER_BODY: String =
     "该命令可能造成不可逆影响，请确认将被执行的完整命令全文："
@@ -279,7 +279,10 @@ fun ShellScreen(
                         )
                     }
                 } else {
-                    IconButton(onClick = { vm.run(input) }) {
+                    // 只在真的受理时才清空输入框：空命令 / 未绑定设备 / 已有命令在跑 /
+                    // 等二次确认这几种「点了没跑起来」的情形必须把内容留在框里。
+                    // 清空不等于丢失 —— 命令已回显到输出区（`$ xxx`）并存进下方历史 chip。
+                    IconButton(onClick = { if (vm.run(input)) input = "" }) {
                         Icon(
                             imageVector = AppIcon.Play,
                             contentDescription = TEXT_EXECUTE,
@@ -416,7 +419,7 @@ fun ShellScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { vm.confirmDanger() }) {
+                TextButton(onClick = { if (vm.confirmDanger()) input = "" }) {
                     Text(text = TEXT_DANGER_CONFIRM, color = MaterialTheme.colorScheme.error)
                 }
             },

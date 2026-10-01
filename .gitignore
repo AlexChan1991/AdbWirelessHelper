@@ -92,3 +92,6 @@ stop_log.txt
 !app/src/main/assets/*.jar
 # wrapper jar：保证别人 clone 后 ./gradlew 拉到版本一致的 Gradle
 !gradle/wrapper/gradle-wrapper.jar
+# README 配图：放在仓库内 docs/images/ 下，路径是相对仓库根的相对路径。
+# 一旦挪到仓库外（例如工作区根的 docs/）就永远推不上去，GitHub 上必然裂图。
+!docs/**/*.png
